@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -184,6 +183,61 @@ if main_df.empty:
 
 
 # ============================================================
+# 3B. FILTER INTERAKTIF (SIDEBAR)
+# ============================================================
+
+st.sidebar.header("Filter Data")
+
+min_date = main_df["order_purchase_timestamp"].min().date()
+max_date = main_df["order_purchase_timestamp"].max().date()
+
+date_range = st.sidebar.date_input(
+    "Rentang tanggal pembelian",
+    value=(min_date, max_date),
+    min_value=min_date,
+    max_value=max_date
+)
+
+if not (isinstance(date_range, (tuple, list)) and len(date_range) == 2):
+    st.info("Pilih tanggal awal dan tanggal akhir pada sidebar.")
+    st.stop()
+
+all_states = sorted(main_df["customer_state"].dropna().unique())
+selected_states = st.sidebar.multiselect(
+    "State pelanggan (kosong = semua)",
+    options=all_states,
+    default=[]
+)
+
+all_categories = sorted(main_df["product_category"].dropna().unique())
+selected_categories = st.sidebar.multiselect(
+    "Kategori produk (kosong = semua)",
+    options=all_categories,
+    default=[]
+)
+
+filter_mask = (
+    (main_df["order_purchase_timestamp"].dt.date >= date_range[0])
+    & (main_df["order_purchase_timestamp"].dt.date <= date_range[1])
+)
+
+if selected_states:
+    filter_mask &= main_df["customer_state"].isin(selected_states)
+
+if selected_categories:
+    filter_mask &= main_df["product_category"].isin(selected_categories)
+
+main_df = main_df[filter_mask].copy()
+
+if main_df.empty:
+    st.warning(
+        "Tidak ada data untuk kombinasi filter yang dipilih. "
+        "Ubah rentang tanggal, state, atau kategori pada sidebar."
+    )
+    st.stop()
+
+
+# ============================================================
 # 4. JUDUL DASHBOARD
 # ============================================================
 
@@ -194,7 +248,11 @@ st.caption(
     "dan distribusi geografis Olist E-Commerce Brasil."
 )
 
-st.caption("Periode analisis: Januari 2017–Agustus 2018")
+st.caption(
+    f"Periode ditampilkan: {date_range[0]:%d %b %Y} – {date_range[1]:%d %b %Y} "
+    f"(data tersedia: Januari 2017–Agustus 2018). "
+    "Gunakan filter di sidebar untuk menyaring tanggal, state, dan kategori."
+)
 
 
 # ============================================================
@@ -420,7 +478,8 @@ st.markdown(
 st.caption(
     "Revenue dihitung dari price (harga barang), tanpa ongkos kirim. "
     "Kategori dengan revenue 2017 nol tidak memiliki persentase "
-    "pertumbuhan yang dapat dihitung."
+    "pertumbuhan yang dapat dihitung. Pertumbuhan hanya muncul jika "
+    "filter tanggal mencakup Januari–Agustus 2017 dan 2018."
 )
 
 st.divider()
