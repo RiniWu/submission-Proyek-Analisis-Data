@@ -27,7 +27,7 @@ PROJECT_DIR = DASHBOARD_DIR.parent
 MAIN_DATA_PATH = DASHBOARD_DIR / "main_data.csv"
 
 # state_geo.csv berada di data/
-STATE_GEO_PATH = PROJECT_DIR / "data" / "state_geo.csv"
+STATE_GEO_PATH = PROJECT_DIR / "dashboard" / "state_geo.csv"
 
 BLUE = "#3B6F89"
 RED = "#B44B40"
